@@ -8,7 +8,7 @@ namespace AdventOfCode2023 {
             Stopwatch watch = new Stopwatch();
 
             watch.Start();
-            Problem p = new Day5("PuzzleInputs/day5.txt");
+            Problem p = new Day6("PuzzleInputs/day6.txt");
             watch.Stop();
             
             Console.WriteLine("Constructed puzzle in: " + (watch.ElapsedTicks / 10) + "μs");
