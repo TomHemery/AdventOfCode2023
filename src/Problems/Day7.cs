@@ -2,6 +2,11 @@ namespace AdventOfCode2023
 {
     public class Day7: Problem 
     {
+        protected Dictionary<char, int> cardStrengthMap = new() {
+            {'2', 2}, {'3', 3}, {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7}, {'8', 8}, {'9', 9}, // number cards
+            {'T', 10}, {'J', 11}, {'Q', 12}, {'K', 13}, {'A', 14} // face cards
+        };
+
         protected List<(string, int)> hands;
         public Day7(string inputPath): base(inputPath)
         {
@@ -76,28 +81,10 @@ namespace AdventOfCode2023
 
         protected int GetCardStrength(char card, bool useJokers = false)
         {
-            if (int.TryParse(card.ToString(), out int strength)) 
-            {
-                return strength;
+            if (useJokers && card == 'J') {
+                return 1;
             }
-            switch (card)
-            {
-                case 'T':
-                    return 10;
-                case 'J':
-                    if (useJokers) {
-                        return 1;
-                    }
-                    return 11;
-                case 'Q':
-                    return 12;
-                case 'K':
-                    return 13;
-                case 'A':
-                    return 14;
-            }
-
-            throw new Exception(String.Format("Card {0} was not valid", card));
+            return cardStrengthMap[card];
         }
 
         protected int CompareHands(string handA, string handB, bool useJokers = false)
