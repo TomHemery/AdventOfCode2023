@@ -6,8 +6,8 @@ namespace AdventOfCode2023
             {'2', 2}, {'3', 3}, {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7}, {'8', 8}, {'9', 9}, // number cards
             {'T', 10}, {'J', 11}, {'Q', 12}, {'K', 13}, {'A', 14} // face cards
         };
-
         protected List<(string, int)> hands;
+
         public Day7(string inputPath): base(inputPath)
         {
             hands = new();
@@ -20,13 +20,8 @@ namespace AdventOfCode2023
         protected Dictionary<char, int> GetCardCount(string hand)
         {
             Dictionary<char, int> cardValueCount = new();
-            foreach (char c in hand) 
-            {
-                if (cardValueCount.ContainsKey(c)) {
-                    cardValueCount[c] ++;
-                } else {
-                    cardValueCount[c] = 1;
-                }
+            foreach (var grp in hand.GroupBy(i => i)) {
+                cardValueCount[grp.Key] = grp.Count();
             }
             return cardValueCount;
         }
@@ -52,12 +47,12 @@ namespace AdventOfCode2023
             return 1; // high card
         }
 
-        protected int ScoreHandJokers(string hand)
+        protected int ScoreHand(string hand, bool useJokers = false)
         {
-            if (!hand.Contains('J') || hand == "JJJJJ") {
-                return ScoreHand(hand);
-            }
             Dictionary<char, int> cardValueCount = GetCardCount(hand);
+            if (!useJokers | !hand.Contains('J') || hand == "JJJJJ") {
+                return ScoreAdjustedHand(cardValueCount);
+            }
             Dictionary<char, int> jokerAdjustedCardCount = new();
             foreach (KeyValuePair<char, int> kvp in cardValueCount)
             {
@@ -73,12 +68,6 @@ namespace AdventOfCode2023
             return ScoreAdjustedHand(jokerAdjustedCardCount);
         }
 
-        protected int ScoreHand(string hand)
-        {
-            Dictionary<char, int> cardValueCount = GetCardCount(hand);
-            return ScoreAdjustedHand(cardValueCount);
-        }
-
         protected int GetCardStrength(char card, bool useJokers = false)
         {
             if (useJokers && card == 'J') {
@@ -89,9 +78,7 @@ namespace AdventOfCode2023
 
         protected int CompareHands(string handA, string handB, bool useJokers = false)
         {
-            int handABetter = useJokers ? 
-                Math.Sign(ScoreHandJokers(handA) - ScoreHandJokers(handB)) : 
-                Math.Sign(ScoreHand(handA) - ScoreHand(handB));
+            int handABetter = Math.Sign(ScoreHand(handA, useJokers) - ScoreHand(handB, useJokers));
             if (handABetter != 0) {
                 return handABetter;
             } else {
@@ -108,32 +95,28 @@ namespace AdventOfCode2023
             return 0;
         }
 
-        public override string Part1()
-        {   
+        protected long ScoreAllHands(bool useJokers = false)
+        {
             hands.Sort(delegate((string, int) handA, (string, int) handB)
             {
-                return CompareHands(handA.Item1, handB.Item1);
+                return CompareHands(handA.Item1, handB.Item1, useJokers);
             });
 
             long sum = 0;
             foreach (var (hand, i) in hands.Select((hand, i) => (hand, i))) {
                 sum += hand.Item2 * (i + 1);
             }
-            return sum.ToString();
+            return sum;
+        }
+
+        public override string Part1()
+        {   
+            return ScoreAllHands().ToString();
         }
 
         public override string Part2()
         {
-            hands.Sort(delegate((string, int) handA, (string, int) handB)
-            {
-                return CompareHands(handA.Item1, handB.Item1, true);
-            });
-
-            long sum = 0;
-            foreach (var (hand, i) in hands.Select((hand, i) => (hand, i))) {
-                sum += hand.Item2 * (i + 1);
-            }
-            return sum.ToString();
+            return ScoreAllHands(true).ToString();
         }
     }
 }
