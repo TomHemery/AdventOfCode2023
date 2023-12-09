@@ -32,28 +32,24 @@ namespace AdventOfCode2023
 
         int GetNextValue(int[] sequence)
         {
-            if (AllZeroes(sequence)) {
-                return 0;
+            if (AllSame(sequence)) {
+                return sequence[0];
             }
             return sequence[sequence.Length - 1] + GetNextValue(GetSubSequence(sequence));
         }
 
         int GetPreviousValue(int[] sequence)
         {
-            if (AllZeroes(sequence)) {
-                return 0;
+            if (AllSame(sequence)) {
+                return sequence[0];
             }
             return sequence[0] - GetPreviousValue(GetSubSequence(sequence));
         }
 
-        bool AllZeroes(int[] sequence)
+        bool AllSame(int[] sequence)
         {
-            foreach (var value in sequence) {
-                if (value != 0) {
-                    return false;
-                }
-            }
-            return true;
+            int test = sequence[0];
+            return sequence.Skip(1).All(x => x == test);
         }
 
         int[] GetSubSequence(int[] sequence)
