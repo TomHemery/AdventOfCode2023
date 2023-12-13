@@ -1,7 +1,3 @@
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.CompilerServices;
-
 namespace AdventOfCode2023 
 {
     public class Day10: Problem 
@@ -23,7 +19,6 @@ namespace AdventOfCode2023
                 }
             }
             ReplaceStartSquare(startX, startY);
-            foreach(string line in puzzleInputLines) Console.WriteLine(line);
             map[(startX, startY)] = GetPipeNeighbours(startX, startY, puzzleInputLines[startY][startX]);
         }
 
@@ -92,7 +87,6 @@ namespace AdventOfCode2023
                 FloodFill(0, y, filledScaledMap);
                 FloodFill(filledScaledMap.GetLength(0) - 1, y, filledScaledMap);
             }
-            SaveBitmap(filledScaledMap);
 
             return CountInternalSquares(filledScaledMap).ToString();
         }
@@ -138,16 +132,6 @@ namespace AdventOfCode2023
                 }
                 Console.WriteLine();
             }
-        }
-
-        void SaveBitmap(char[,] map) {
-            var bmp = new Bitmap(map.GetLength(0), map.GetLength(1));
-            for (int y = 0; y < map.GetLength(1); y++) {
-                for (int x = 0; x < map.GetLength(0); x++) {
-                    bmp.SetPixel(x, y, map[x, y] == ' ' ? Color.White : Color.Black);
-                }
-            }
-            bmp.Save("AdjustedMap.bmp", ImageFormat.Bmp);
         }
 
         void ReplaceStartSquare(int x, int y)
