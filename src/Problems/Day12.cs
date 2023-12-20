@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 
 namespace AdventOfCode2023 
@@ -33,7 +34,6 @@ namespace AdventOfCode2023
         {
             long arrangementCount = 0;
             foreach (var row in expandedRows) {
-                Console.WriteLine(row.definition);
                 arrangementCounts = [];
                 validArrangements = [];
                 arrangementCount += CountArrangements(row.definition, row.springs);
@@ -41,81 +41,68 @@ namespace AdventOfCode2023
             return arrangementCount.ToString();
         }
 
-        long CountArrangements(string definition, int[] springs) 
+        long CountArrangements(string definition, int[] springs, int springIndex = 0) 
         {
-            string key = definition + string.Join(',', springs);
-
-            if (arrangementCounts.TryGetValue(key, out long value)) {
-                return value;
-            }
-
-            if (!ArrangementValid(definition, springs)) {
-                arrangementCounts[key] = 0;
-                return 0;
-            }
-
-            int changeIndex = definition.IndexOf('?');
-            if (changeIndex < 0) {
-                if (ArrangementValid(definition, springs)) {
-                    return 1; 
-                } else { 
+            if (definition == "") { // Base case
+                if (springIndex == springs.Length) {
+                    return 1;
+                } else {
                     return 0;
                 }
             }
 
-            StringBuilder sb = new(definition);
-            sb[changeIndex] = '#';
-            long count = CountArrangements(sb.ToString(), springs);
-            sb[changeIndex] = '.';
-            count += CountArrangements(sb.ToString(), springs);
-
-            arrangementCounts[key] = count;
-
-            return count;
-        }
-
-        bool ArrangementValid(string arrangement, int[] springs)
-        {
-            string key = arrangement + string.Join(',', springs);
-            if (validArrangements.TryGetValue(key, out bool value)) {
+            string key = definition + string.Join(',', springs) + springIndex; // Cache
+            if (arrangementCounts.TryGetValue(key, out long value)) {
                 return value;
             }
 
-            int springIndex = 0;
-            int springCounter = springs[springIndex];
-            bool onSpring = false;
-            foreach (char c in arrangement) {
-                if (c == '?') {
-                    validArrangements[key] = true;
-                    return true; // encountered a question mark without failing, we don't know what to do yet
+            long count = 0;
+            if (definition[0] == '.') {
+                count = CountArrangements(definition.Substring(1), springs, springIndex);
+            } else if (definition[0] == '?') {
+                count += CountArrangements("#" + definition.Substring(1), springs, springIndex);
+                count += CountArrangements("." + definition.Substring(1), springs, springIndex);
+            } else if (definition[0] == '#') {
+                string nextDefinition = springIndex >= springs.Length ? "E" : RemoveFirstSpring(definition, springs, springIndex);
+                if (nextDefinition == "E") {
+                    count = 0;
+                } else {
+                    count = CountArrangements(nextDefinition, springs, springIndex + 1);
                 }
+            }
 
+            arrangementCounts[key] = count; // Set cache
+            return count;
+        }
+
+        string RemoveFirstSpring(string definition, int[] springs, int springIndex)
+        {
+            int springCount = springs[springIndex];
+            for (int i = 0; i < definition.Length; i ++) {
+                char c = definition[i];
                 if (c == '#') {
-                    if (springIndex >= springs.Length) {
-                        validArrangements[key] = false;
-                        return false;
+                    springCount --;
+                    if (springCount < 0) {
+                        return "E";
                     }
-                    springCounter --;
-                    onSpring = true;
                 } else if (c == '.') {
-                    if (onSpring && springCounter != 0) {
-                        validArrangements[key] = false;
-                        return false;
-                    } else if (onSpring) {
-                        springIndex ++;
-                        springCounter = springIndex < springs.Length ? springs[springIndex] : springCounter; 
-                        onSpring = false;
+                    if (springCount != 0) {
+                        return "E";
+                    } else {
+                        return definition.Substring(i);
                     }
-                } 
+                } else if (c == '?') {
+                    if (springCount > 0) {
+                        springCount --;
+                    } else if (springCount == 0) {
+                        return string.Concat(".", definition.AsSpan(i + 1));
+                    }
+                }
             }
-
-            if (springCounter != 0 || springIndex < springs.Length - 1) {
-                validArrangements[key] = false;
-                return false;
+            if (springCount == 0) {
+                return "";
             }
-
-            validArrangements[key] = true;
-            return true;
+            return "E";
         }
     }
 }
