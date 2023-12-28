@@ -4,9 +4,6 @@ namespace AdventOfCode2023
     public class Day16: Problem 
     {
         char[,] mirrorMap;
-        Dictionary<(int, int), bool> energisedTiles = [];
-        Dictionary<(int, int, int, int), bool> previousBeams = [];
-        List<(int x, int y, int velX, int velY)> beams = [];
 
         public Day16(string inputPath): base(inputPath)
         {
@@ -20,37 +17,28 @@ namespace AdventOfCode2023
 
         public override string Part1()
         {   
-            beams.Add((-1, 0, 1, 0));
-            return ProcessBeams().ToString();
+            return ProcessBeams([(-1, 0, 1, 0)]).ToString();
         }
 
         public override string Part2()
         {
             int bestAcivation = int.MinValue;
             for (int x = 0; x < mirrorMap.GetLength(0); x++) {
-                Reset();
-                beams.Add((x, -1, 0, 1));
-                int activation = ProcessBeams();
+                int activation = ProcessBeams([(x, -1, 0, 1)]);
                 if (activation > bestAcivation) {
                     bestAcivation = activation;
                 }
-                Reset();
-                beams.Add((x, mirrorMap.GetLength(1), 0, -1));
-                activation = ProcessBeams();
+                activation = ProcessBeams([(x, mirrorMap.GetLength(1), 0, -1)]);
                 if (activation > bestAcivation) {
                     bestAcivation = activation;
                 }
             }
             for (int y = 0; y < mirrorMap.GetLength(1); y++) {
-                Reset();
-                beams.Add((-1, y, 1, 0));
-                int activation = ProcessBeams();
+                int activation = ProcessBeams([(-1, y, 1, 0)]);
                 if (activation > bestAcivation) {
                     bestAcivation = activation;
                 }
-                Reset();
-                beams.Add((mirrorMap.GetLength(0), y, -1, 0));
-                activation = ProcessBeams();
+                activation = ProcessBeams([(mirrorMap.GetLength(0), y, -1, 0)]);
                 if (activation > bestAcivation) {
                     bestAcivation = activation;
                 }
@@ -58,24 +46,21 @@ namespace AdventOfCode2023
             return bestAcivation.ToString();
         }
 
-        protected void Reset()
+        protected int ProcessBeams(List<(int x, int y, int velX, int velY)> beams)
         {
-            energisedTiles = [];
-            previousBeams = [];
-            beams = [];
-        }
-
-        protected int ProcessBeams()
-        {
+            Dictionary<(int, int), bool> energisedTiles = [];
+            Dictionary<(int, int, int, int), bool> previousBeams = [];
             while (beams.Count > 0) {
-                ProcessBeamStep();
+                ProcessBeamStep(beams, energisedTiles, previousBeams);
             }
             return energisedTiles.Values.Count - 1;
         }
 
-        protected void ProcessBeamStep() 
-        {
-            // Console.WriteLine(string.Join(',', beams));
+        protected void ProcessBeamStep(
+            List<(int x, int y, int velX, int velY)> beams, 
+            Dictionary<(int, int), bool> energisedTiles, 
+            Dictionary<(int, int, int, int), bool> previousBeams
+        ) {
             for (int i = beams.Count - 1; i >= 0; i--) {
                 var beam = beams[i];
                 if (previousBeams.ContainsKey(beam)) {
@@ -128,21 +113,6 @@ namespace AdventOfCode2023
         protected (int, int) VecAdd ((int x, int y) a, (int x, int y) b) 
         {
             return (a.x + b.x, a.y + b.y);
-        }
-
-        protected void PrintMap()
-        {
-            for (int y = 0; y < mirrorMap.GetLength(1); y++) {
-                for (int x = 0; x < mirrorMap.GetLength(0); x++) {
-                    if (energisedTiles.ContainsKey((x, y))) {
-                        Console.Write('#');
-                    } else {
-                        Console.Write(mirrorMap[x, y]);
-                    }
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine();
         }
     }
 }
